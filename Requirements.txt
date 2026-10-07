@@ -1,0 +1,8 @@
+customtkinter
+CTkMessagebox
+mysql-connector-python
+pypdf
+dotenv
+keyring
+uuid
+cryptography
