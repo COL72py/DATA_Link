@@ -571,14 +571,8 @@ class PDFReader:
             Lbl14 = ctk.CTkLabel(self.Tp5, text = '', image = C_Img)
             Lbl14.pack(padx = (3, 3), pady = (2, 2), side = 'top')
             Lbl14.image = C_Img
-
-        
-
-
-        
-        
-
-Log()
+            #Under Development
+#Log()
 
 
 
