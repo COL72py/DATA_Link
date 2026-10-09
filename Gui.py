@@ -172,15 +172,17 @@ class Log:
         def File_lst(dir):
             Val = Main.Mod(self.Gen_Key(self.Uname.get()), None, None).show_files(dir)
             for l in Val:
-                self.Btn11 = ctk.CTkButton(self.Frm8, corner_radius = 5, font = self.Font, text = bytes.fromhex(l).decode(),  fg_color = 'transparent', hover_color=("gray85", "gray25"), command = lambda file = l, dir = dir : reader(file = file, dir = dir))
+                self.Btn11 = ctk.CTkButton(self.Frm8, corner_radius = 5, font = self.Font, text = bytes.fromhex(l).decode(),  fg_color = 'transparent', hover_color=("gray85", "gray25"), command = lambda file = l, dir = dir : self.Frm6.after(10,reader(file = file, dir = dir)))
                 self.Btn11.pack(padx = (5, 5), pady = (5, 0))
                 self.Btn.configure('disabled')
 
 
         def reader(file, dir):
-            PDFReader(user = self.Gen_Key(self.Uname.get()), file = file, Tp = self.Tp3, dir = dir)
 
-        self.Bt9 = ctk.CTkButton(self.Frm3, text = 'Add Files', font = self.Font, corner_radius = 5)
+            if self.Win.winfo_exists():
+                PDFReader(user = self.Gen_Key(self.Uname.get()), file = file, Tp = self.Tp3, dir = dir)
+
+        self.Bt9 = ctk.CTkButton(self.Frm3, text = 'Add Files', font = self.Font, corner_radius = 5, command = lambda u = self.Gen_Key(self.Uname.get()): UserI(self.Tp3, u).set_file())
         self.Bt9.grid(row = 0, column = 1, padx = (0, 5), pady = (5, 5))
 
 
@@ -388,7 +390,7 @@ class UserI:
 
             self.Tp4 = ctk.CTkToplevel(self.Win)
             self.Tp4.title('Add File')
-            self.Tp4.geometry('525x200')
+            self.Tp4.geometry('320x220')
             self.Tp4.resizable(False, False)
             self.Tp4.attributes('-topmost', True)
             self.Tp4.focus_set()
@@ -405,36 +407,30 @@ class UserI:
             self.File = ctk.CTkEntry(self.Frm6, font = self.Font, corner_radius = 5)
             self.File.grid(row = 0, column = 1, padx = (5, 5), pady = (0, 5))
 
-            self.Bt7 = ctk.CTkButton(self.Frm6, font = self.Font, text = 'Choose File', command = self.add_file)
-            self.Bt7.grid(row =1, column = 0, padx = (5, 5), pady = (0, 5))
-
             self.Lb15 = ctk.CTkLabel(self.Frm6, text = 'File :', font = self.Font)
             self.Lb15.grid(row = 2, column = 0, padx = (2, 2), pady = (0, 5))
 
             self.Val3 = ctk.IntVar(self.Tp4, value = 0)
-            self.Ctk2 = ctk.CTkCheckBox(self.Frm6, text = 'Private', font = self.Font, textvariable = self.Val3, offvalue = 0, onvalue = 1)
+            self.Ctk2 = ctk.CTkCheckBox(self.Frm6, text = 'Private', font = self.Font, variable = self.Val3, offvalue = 0, onvalue = 1)
             self.Ctk2.grid(row = 1, column = 1, padx = (0, 2), pady = (0, 5))
 
             self.Val4 = ctk.IntVar(self.Tp4, value = 0)
 
-            self.Bt8 = ctk.CTkButton(self.Tp4, text = 'Confirm', font = self.Font, corner_radius = 5, command = lambda : self.St.start(), state = 'disabled')
+            self.Bt8 = ctk.CTkButton(self.Tp4, text = 'Confirm', font = self.Font, corner_radius = 5, state = 'disabled')
             self.Bt8.pack(padx = (5,5), pady = (0, 5))
+
+            self.Bt7 = ctk.CTkButton(self.Frm6, font = self.Font, text = 'Choose File', command = lambda F = self.File, D = self.Req_txt, V = self.Val3.get(), B = self.Bt8, L = self.Lb15, T = self.Tp4 : self.add_file(D, V, F, B, L, T))
+            self.Bt7.grid(row = 1, column = 0, padx = (5, 5), pady = (0, 5))
 
         else:
             pass
 
 
-    def add_file(self):
+    def add_file(self, Dir, val, file, Btn, Lb, Tp):
 
-        self.Bt8.configure(state = 'normal')
+        if file.get().encode().hex() != '':
 
-        self.Tp4.bind('<Return>', lambda e = None : self.add_file())
-
-        Dir = self.Req_txt.encode().hex()
-
-        self.Tp4.attributes('-topmost', False)
-
-        if self.File.get() != '':
+            Tp.attributes('-topmost', False)
 
             File = ctk.filedialog
 
@@ -445,16 +441,18 @@ class UserI:
 
             else:
 
-                self.Lb15.configure(text = f'File :{ph.Path(R_txt).name}')
+                Lb.configure(text = f'File :{ph.Path(R_txt).name}')
                 #self.Bt8.configure(state = 'disabled')
 
                 Key = Frt.generate_key()
+                print(Key)
                 
-                if self.Val3.get() == 1:
+                if val == 1:
                     Dir = './' + Dir
 
                 else:
                     pass
+
 
             def Reader():
 
@@ -462,7 +460,7 @@ class UserI:
                 with (ph.Path(R_txt).open('rb')) as Rn:
                     text = Rn.read()
 
-                self.Tp4.attributes('-topmost', True)
+                Tp.attributes('-topmost', True)
 
                 L_txt = Frt(Key).encrypt(text)
 
@@ -475,41 +473,87 @@ class UserI:
                     Data_R = thr.submit(Reader)
                     Data = Data_R.result()
 
-                self.Bt8.configure(state = 'normal')
+                if Dir == '':
+                    return None
                 
                 self.F_Name = hashes.Hash(hashes.BLAKE2b(64))
-                self.F_Name.update(self.File.get().encode())
+                self.F_Name.update(file.get().encode())
                 
                 with open(ph.Path('File.json')) as Fn:
                     Dats = json.load(Fn)
                     if self.User not in Dats.keys():
-                        Dats.setdefault(self.User, {self.F_Name.finalize().hex() : Key.hex()})#[self.User, self.F_Name.finalize().hex(), Key.hex()])
+                        Dats.setdefault(self.User, {self.F_Name.finalize().hex() : Key.hex()})
 
                     else:
                         Dats[self.User].setdefault(self.F_Name.finalize().hex(), Key.hex())
 
                 with open(ph.Path('File.json'), 'w') as Frn:
                     json.dump(Dats, Frn)
-                
 
-                Main.Mod(self.User, None, None).add_file(Dir ,Data ,self.File.get().encode().hex())
+
+                Main.Mod(self.User, None, None).add_file(Dir.encode().hex() ,Data ,file.get().encode().hex())
                 
-                Msg = MB(self.Tp4, title = 'Dir Set', message = f'Dir {Dir} has scuessfully created', font = self.Font, corner_radius = 3, fade_in_duration = 3, icon = 'check', option_1 = 'Done')
+                Msg = MB(Tp, title = 'Dir Set', message = f'Dir {Dir} has scuessfully created', font = self.Font, corner_radius = 3, fade_in_duration = 3, icon = 'check', option_1 = 'Done')
 
                 if Msg.get() is not None:
-                    self.Tp4.destroy()
-                    
+                    Tp.after(5000, Tp.destroy())
+
+            Btn.configure(state = 'normal')
 
             self.St = th.Thread(target = Add, daemon = True)
-            #self.Tp4.bind('',func = lambda e : St.start())
+
+            Btn.configure(command = lambda : self.St.start())
 
         else:
             Error(self.Tp4, 'Name').EntryError('Orange')
 
 
-    def set_file(self, name, file):
-        pass
+    def set_file(self):
 
+        self.Tp6 = ctk.CTkToplevel(self.Win)
+        self.Tp6.title('Add files')
+        self.Tp6.geometry('300x220')
+        self.Tp6.resizable(False, False)
+        self.Tp6.attributes('-topmost', True)
+
+        self.Lbl19 = ctk.CTkLabel(self.Tp6, text = 'Add File')
+        self.Lbl19.pack(padx = (5, 5), pady = (5, 5))
+
+        self.Frm14 = ctk.CTkFrame(self.Tp6, corner_radius = 5)
+        self.Frm14.pack(padx = (0, 5), pady = (5, 5))
+
+
+
+        self.Val5 = ctk.StringVar(value = '')
+
+        Val = list(bytes.fromhex(l[0]).decode() for l in Main.Mod(self.User, None, None).load_dir())
+
+        self.Lbl16 = ctk.CTkLabel(self.Frm14, text = 'Select Dir', corner_radius = 5)
+        self.Lbl16.grid(row = 0, column = 0, padx = (5, 3), pady = (5, 3))
+
+        self.Opt1 = ctk.CTkOptionMenu(self.Frm14, variable = self.Val5, values = Val)
+        self.Opt1.grid(row = 0, column = 1, padx = (0, 3), pady = (5, 3))
+
+        self.Lbl17 = ctk.CTkLabel(self.Frm14, text = 'Name', corner_radius = 5)
+        self.Lbl17.grid(row = 1, column = 0, padx = (5, 3), pady = (0, 3))
+
+        self.Name = ctk.CTkEntry(self.Frm14)
+        self.Name.grid(row = 1, column = 1, padx = (0, 3), pady = (0, 3))
+
+        self.Lbl18 = ctk.CTkLabel(self.Frm14, text = 'File :')
+        self.Lbl18.grid(row = 3, column = 0, padx = (5, 3), pady = (0, 3))
+
+        self.Bt10 = ctk.CTkButton(self.Tp6, text = 'Confirm', state = 'disabled', corner_radius = 5)
+        self.Bt10.pack(padx = (5, 5), pady = (0, 5))
+
+        self.Val6 = ctk.IntVar(self.Tp6, value = 0)
+
+        self.Ctk3 = ctk.CTkSwitch(self.Frm14, text = 'Private', variable = self.Val6, offvalue = 0, onvalue = 1,)
+        self.Ctk3.grid(row = 2, column = 0, padx = (5, 3), pady = (0, 3))
+
+        self.Bt9 = ctk.CTkButton(self.Frm14, text = 'Choose', command = lambda : self.add_file(self.Opt1.get(), self.Val6, self.Name, self.Bt10, self.Lbl18, self.Tp6), corner_radius = 5)
+        self.Bt9.grid(row = 2, column = 1, padx = (0, 3), pady = (0, 3))
+        
 
 class PDFReader:
     def __init__(self, user,  file, Tp, dir):
@@ -520,17 +564,17 @@ class PDFReader:
 
         self.Tp5 = ctk.CTkToplevel(Tp)
         self.Tp5.title('FileVeiwer.xcr')
-        self.Tp5.geometry('700x500')
+        self.Tp5.geometry('700x400')
         self.Tp5.attributes('-topmost', True)
         self.Tp5.grab_set()
 
         self.C_Page = 0
 
-        self.Frm9 = ctk.CTkFrame(self.Tp5, corner_radius = 5, height = 120)
-        self.Frm9.pack(padx = (5, 5), pady = (2, 5), expand = True, fill = 'x')
+        self.Frm9 = ctk.CTkFrame(self.Tp5, corner_radius = 5, height = 50)
+        self.Frm9.pack(padx = (10, 10), pady = (5, 3), expand = True, fill = 'x', anchor = '')
 
         self.Frm13 = ctk.CTkScrollableFrame(self.Tp5, corner_radius = 5, )
-        self.Frm13.pack(padx = (5, 5), pady = (0, 5), expand = True, fill = 'both')
+        self.Frm13.pack(padx = (3, 3), pady = (0, 5), expand = True, fill = 'both', anchor = 'center')
 
         Val = Main.Mod(user, None, None).acess_files(file, dir)
 
@@ -543,24 +587,26 @@ class PDFReader:
 
             Jats = json.load(Fn)
             Key = Jats.get(user).get(fle)
-
+            
         try:
-           Dat =  Frt(bytes.fromhex(Key)).decrypt(Val.decode()[2 : -1])
+           
+            Dat =  Frt(bytes.fromhex(Key)).decrypt(Val.decode()[2 : ])
 
         except:
+
             return 
 
-        self.Dat = pdfm.open(stream = Dat, filetype= 'pdf').
-        print(self.Dat)
+        self.Dat = pdfm.open(stream = Dat, filetype= 'pdf')
+        
 
-        self.Tp5.after(500, lambda : self.File_Acess)
+        self.Tp5.after(500, lambda : self.File_Acess())
 
     def File_Acess(self):
 
         for l in range(len(self.Dat)):
             Page = self.Dat.load_page(l)
 
-            matx = pdfm.Matrix(1.2, 1.4)
+            matx = pdfm.Matrix(1.5, 1.5)
 
             Pix = Page.get_pixmap(matrix = matx)
 
@@ -568,11 +614,19 @@ class PDFReader:
 
             C_Img = ctk.CTkImage(Img, Img, size = (Img.width, Img.height))
 
-            Lbl14 = ctk.CTkLabel(self.Tp5, text = '', image = C_Img)
-            Lbl14.pack(padx = (3, 3), pady = (2, 2), side = 'top')
-            Lbl14.image = C_Img
-            #Under Development
-#Log()
+            Lbl14 = ctk.CTkLabel(self.Frm13, text = '', image = C_Img)
+            Lbl14.pack(padx = (3, 3), pady = (2, 2), side = 'top', fill = 'both', expand = True)
+
+
+    def page_render(self, no):
+        if no < len(self.Dat):
+            pass
+
+    def zoom(self, n):
+        pass
+            
+            
+Log()
 
 
 
