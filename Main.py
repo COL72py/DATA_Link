@@ -80,15 +80,15 @@ class Mod:
             return Val
 
 
-    def add_domain(self, Host):
+    def add_domain(self, Host, Acs_word, Root, Ip):
         if self.Con.is_connected():
             Cur = self.Con.cursor()
             self.Domain = ''
             self.Res = False
             Cur.execute(f'create database {self.Domain};')
-            Cur.execute(f'update DAT.USER_51611 set Domain =\'{Host}\' where = User = {self.User};')
+            Cur.execute(f'update DAT.USER_51611 set Domain = cocat(Domain, \',\', \'{Host}\') where User = {self.User};')
             Cde = str(self.Domain)[0] + str(self.Domain)[-1] + (''.join(rn.sample(string.digits, k = 5)))
-            Cur.execute(f'insert into DAT.DOMAIN_78371 values (\'{Cde}\', \"{self.Domain}\", \'{Host}\')')
+            Cur.execute(f'insert into DAT.DOMAIN_78371 values (\'{Cde}\', \"{self.Domain}\", \'{Host}\', \"{Acs_word}\", \'{Root}\', \'{Ip}\')')
             self.Con.commit()
             Cur.close()
 
@@ -105,12 +105,7 @@ class Mod:
 
                 self.Con.commit()
                 Cur.close()
-
-
                 
-            if self.Res:
-                pass
-
 
     def add_file(self, dir, file, name):
 
@@ -141,15 +136,11 @@ class Mod:
             return None
 
 
-    def delete(self, dir, file):
+    def delete_file(self, dir, file):
 
         if self.Con.is_connected():
             Cur = self.Con.cursor()
-            if file is None:
-                Cur.execute(f'delete from PUB.{self.User} where DIR = \"{dir}\"')
-
-            else:
-                Cur.execute(f'delete from pub.{self.User} where DIR = \"{dir}\" and \"{file}\"')
+            Cur.execute(f'delete from pub.{self.User} where DIR = \"{dir}\" and NAME = \"{file}\"')
 
             self.Con.commit()
             Cur.close()
@@ -170,6 +161,44 @@ class Mod:
 
             else:
                 pass
+
+
+    def Activate_domain(self, Dom):
+
+        def Check(D = Dom):
+
+            Cur = self.Con.cursor()
+            Cur.execute(f'select * from DAT.DOMAIN_78371 where Domain = \"{D}\"')
+
+            if Cur.fetchone() is None:
+                return False
+
+            else:
+                return True
+
+
+        def User_exists(User = self.User, Domain = Dom):
+
+            Cur = self.Con.cursor()
+            Cur.execute(f'select MEID from {Domain}.member_list where User = \"{User}\"')
+
+            if Cur.fetchone() is None:
+                return False
+
+            else:
+                return True
+        
+        if Check():
+
+            if User_exists():
+                print(True)
+
+            else:
+                return -1
+
+        else:
+            return -1
+
 
 
     def close(self):

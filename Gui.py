@@ -94,6 +94,9 @@ class Log:
             if self.Gen_Key(self.Pass.get()) == Data[self.Gen_Key(self.Uname.get())][0]:
                 self.Win.unbind('<Return>')
                 self.Win.after(300, self.GUI)
+
+                self._UN_ = self.Uname.get()
+                self.E_UN_ = self.Gen_Key(self._UN_)
         
         
             else:
@@ -131,7 +134,7 @@ class Log:
         self.Frm3 = ctk.CTkFrame(self.Tp3, corner_radius = 5)
         self.Frm3.pack(anchor = 'nw', pady = (0, 5), padx = (10, 5), fill = 'x', expand = True)
 
-        self.Bt4 = ctk.CTkButton(self.Frm3, text = 'Add Dir', font = self.Font, corner_radius = 5, command = lambda : UserI(self.Tp3, self.Gen_Key(self.Uname.get())).set_root())
+        self.Bt4 = ctk.CTkButton(self.Frm3, text = 'Add Dir', font = self.Font, corner_radius = 5, command = lambda : UserI(self.Tp3, self.E_UN_).set_root())
         self.Bt4.grid(row = 0, column = 0, padx = 5, pady = 5)
 
         self.Sth2 = ctk.CTkSwitch(self.Frm3, text = 'Show Private', font = self.Font)
@@ -143,8 +146,8 @@ class Log:
         self.Frm5 = ctk.CTkFrame(self.Frm4, corner_radius = 5)
         self.Frm5.pack(padx = 5, pady = 5)
 
-        self.File = ctk.CTkEntry(self.Frm5, corner_radius = 5)
-        self.File.grid(row =0, column = 0, padx = 2, pady = 2)
+        self.File = ctk.CTkEntry(self.Frm5, corner_radius = 5, font = self.Font)
+        self.File.grid(row = 0, column = 0, padx = 2, pady = 2)
 
         self.Bt5 = ctk.CTkButton(self.Frm5, text = 'Search File', font = self.Font, corner_radius = 5)
         self.Bt5.grid(row = 0, column = 1, padx = (0, 2), pady = (0, 2))
@@ -163,7 +166,7 @@ class Log:
         
         def Dir_lst():
 
-            for l in Main.Mod(self.Gen_Key(self.Uname.get()), self.Gen_Key(self.Pass.get()), None).load_dir():
+            for l in Main.Mod(self.E_UN_, self.Gen_Key(self.Pass.get()), None).load_dir():
 
                 self.Btn = ctk.CTkButton(self.Frm7, text = bytes.fromhex(l[0]).decode(), font = self.Font, fg_color = 'transparent', hover_color=("gray85", "gray25"), command = lambda dir = l[0] : File_lst((dir)))
                 self.Btn.pack(padx = (5, 5), pady = (5, 0))
@@ -172,19 +175,27 @@ class Log:
         self.Frm8 = ctk.CTkScrollableFrame(self.Frm6, corner_radius = 5)
         self.Frm8.grid(row = 0, column = 1, padx = (0, 5), pady = (5, 5), sticky = 'ns')
 
-        self.Frm20 = ctk.CTkScrollableFrame(self.Frm6, corner_radius = 5)
+        self.Frm20 = ctk.CTkFrame(self.Frm6, corner_radius = 5)
         self.Frm20.grid(row = 0, column = 2, padx = (13, 5), pady = (5, 5), sticky = 'ns')
 
-        self.Tb1 = ctk.CTkTabview(self.Frm20, corner_radius = 5, segmented_button_unselected_color = '#2B2B2B', segmented_button_unselected_hover_color = '#878787', segmented_button_selected_color = '#333333')
-        self.Tb1.pack(padx = (2, 2), pady = (3, 3), fill = 'both', expand = True)
 
-        def Edit(file):
+        def reader(file, dir):
 
-            T1 = self.Tb1.add('DESP')
+            if self.Win.winfo_exists():
+                PDFReader(user = self.E_UN_, file = file, Tp = self.Tp3, dir = dir)
 
-            def DESP():
-                pass
+        def Tools(file, dir):
+            self.Bt23 = ctk.CTkButton(self.Frm20, text = 'Open', corner_radius = 5, font = self.Font, command = lambda f = file, d = dir : reader(f, d))
+            self.Bt23.grid(row = 0, column = 0, padx = (5, 5), pady = (5, 5))
 
+
+            def delf(file, dir):
+
+                Main.Mod(self.E_UN_, None, None).delete_file(dir = dir, file = file)
+                self.Frm7.after(3, lambda : reload_lst())
+
+            self.Bt24 = ctk.CTkButton(self.Frm20, text = 'Delete', corner_radius = 5, command = lambda : delf(file = file, dir = dir), font = self.Font)
+            self.Bt24.grid(row = 0, column = 1, padx = (0, 5), pady = (5, 5))
 
 
         def File_lst(dir):
@@ -193,20 +204,14 @@ class Log:
                 for l in self.Frm8.winfo_children():
                     l.destroy()
             
-            Val = Main.Mod(self.Gen_Key(self.Uname.get()), None, None).show_files(dir)
+            Val = Main.Mod(self.E_UN_, None, None).show_files(dir)
 
             for l in Val:
-                self.Btn11 = ctk.CTkButton(self.Frm8, corner_radius = 5, font = self.Font, text = bytes.fromhex(l).decode(),  fg_color = 'transparent', hover_color=("gray85", "gray25"), command = lambda file = l, dir = dir : self.Frm6.after(10,reader(file = file, dir = dir)))
+                self.Btn11 = ctk.CTkButton(self.Frm8, corner_radius = 5, font = self.Font, text = bytes.fromhex(l).decode(),  fg_color = 'transparent', hover_color=("gray85", "gray25"), command = lambda f = l, d = dir : Tools(f, d))
                 self.Btn11.pack(padx = (5, 5), pady = (5, 0))
 
 
-        def reader(file, dir):
-
-            if self.Win.winfo_exists():
-                PDFReader(user = self.Gen_Key(self.Uname.get()), file = file, Tp = self.Tp3, dir = dir)
-
-
-        self.Bt9 = ctk.CTkButton(self.Frm3, text = 'Add Files', font = self.Font, corner_radius = 5, command = lambda u = self.Gen_Key(self.Uname.get()): UserI(self.Tp3, u).set_file())
+        self.Bt9 = ctk.CTkButton(self.Frm3, text = 'Add Files', font = self.Font, corner_radius = 5, command = lambda u = self.E_UN_: UserI(self.Tp3, u).set_file())
         self.Bt9.grid(row = 0, column = 1, padx = (0, 5), pady = (5, 5))
 
 
@@ -237,9 +242,9 @@ class Log:
         self.Bt10.grid(row = 0, column = 2, padx = (0, 5), pady =(5, 5))
 
         self.Bt22 = ctk.CTkButton(self.Frm3, text = 'Settings', font = self.Font, corner_radius = 5)
-        self.Bt22.grid(row = 0, column = 3, padx = (0, 5), pady =(5, 5))
+        self.Bt22.grid(row = 0, column = 3, padx = (10, 5), pady =(5, 5))
 
-        self.Lb23 = ctk.CTkLabel(self.Frm3, text = 'None', font = self.Font, corner_radius = 5)
+        self.Lb23 = ctk.CTkLabel(self.Frm3, text = f'Domian : 0', font = self.Font, corner_radius = 5)
         self.Lb23.grid(row = 1, column = 1, padx = (10, 5), pady =(0, 5))
 
         self.Frm19 = ctk.CTkFrame(self.Tp3, corner_radius = 5)
@@ -255,7 +260,8 @@ class Log:
         self.HBt1 = ctk.CTkButton(self.Frm19, text = 'Help', text_color = '#148DFF', hover_color = '#2B2B2B', bg_color = 'transparent', fg_color= '#2B2B2B', command = Help)
         self.HBt1.grid(row = 1, column = 0, padx = (10, 5), pady = (0, 5))
 
-
+        self.Bt27 = ctk.CTkButton(self.Frm3, text = 'Create Domain', font = self.Font, corner_radius = 5, command = lambda U = self.E_UN_ : Domain().Dom_Wizard(U, self.Tp3, self.Font))
+        self.Bt27.grid(row = 0,column = 4 , padx = (30, 5), pady = (5, 5))
 
 
     def Act_Dmn(self):
@@ -275,8 +281,12 @@ class Log:
                     else:
                         Error(self.Win, None).DomainConnectionError(None)
 
+                        self.Ct1.configure(state = 'disabled')
+                        self.Sth1.deselect()
+
                 else:
-                    pass
+                    self.Ct1.configure(state = 'disabled')
+                    self.Sth1.deselect()
                     
 
            else:
@@ -359,7 +369,7 @@ class Log:
                 return False
 
         if Chk_Pass():
-            Mod = Main.Mod(User = self.Gen_Key(self.Uname.get()), Passkey = self.Gen_Key(self.S_Pass.get()), Name = self.Name.get())
+            Mod = Main.Mod(User = self.E_UN_, Passkey = self.Gen_Key(self.S_Pass.get()), Name = self.Name.get())
 
             Data = dict(json.load(ph.Path('User.json').open('r')))
             Data.setdefault(self.Gen_Key(self.Unme.get()), (self.Gen_Key(self.S_Pass.get()), socket.gethostbyname(socket.gethostname())))
@@ -374,7 +384,6 @@ class Log:
                 Mod.Cret_User(socket.gethostbyname(socket.gethostname()), Cde)
 
                 
-
                 self.Win.after(5000, self.Tp2.destroy())
                 self.Win.deiconify()
 
@@ -492,7 +501,7 @@ class UserI:
 
             else:
 
-                Lb.configure(text = f'File :{ph.Path(R_txt).name}')
+                Lb.configure(text = f'File :{ph.Path(R_txt).name[ : 9]}...')
 
                 Key = Frt.generate_key()
                 
@@ -572,7 +581,6 @@ class UserI:
         self.Frm14.pack(padx = (0, 5), pady = (5, 5))
 
 
-
         self.Val5 = ctk.StringVar(value = '')
 
         Val = list(bytes.fromhex(l[0]).decode() for l in Main.Mod(self.User, None, None).load_dir())
@@ -613,7 +621,8 @@ class PDFReader:
         self.Zl = 1.5
 
         ctk.FontManager.load_font('Operation Napalm.ttf')
-        self.Tfont = ctk.CTkFont(family = 'Operation Napalm', size = 17)
+
+        self.Tfont = ctk.CTkFont(family = 'Operation Napalm', size = 17, weight = 'normal')
 
         self.Tp5 = ctk.CTkToplevel(Tp)
         self.Tp5.title('FileVeiwer.xcr')
@@ -731,12 +740,99 @@ class Domain:
 
     def __init__(self):
 
+        ctk.FontManager().load_font('Operation Napalm.ttf')
+
         self.D_IP = uuid.uuid7()
         Uuid = self.D_IP.bytes[: 4]
         self.H_DIP = (f'{Uuid[0]}.{Uuid[1]}.{Uuid[2]}.{Uuid[3]}')
 
-        self.Dom = Main.Mod(None, None, None)
-        self.Dom.add_domain
+        lambda : self.Dom_Wizard()
+
+        
+        
+
+    def Dom_Wizard(self, User, Tp, F):
+
+        self.Dom = Main.Mod(User, None, None)
+        
+        self.Tp8 = ctk.CTkToplevel(Tp)
+        self.Tp8.title('\\Set_Honcho.exe')
+        self.Tp8.geometry('450x350')
+        self.Tp8.resizable(False, False)
+        self.Tp8.attributes('-topmost', True)
+        self.Tp8.grab_set()
+
+        self.Lb27 = ctk.CTkLabel(self.Tp8, text = 'Create/Set A New Domain', font = F)
+        self.Lb27.pack(padx = (5, 5), pady = (5, 5))
+
+        self.Frm30 = ctk.CTkFrame(self.Tp8, corner_radius = 5)
+        self.Frm30.pack(padx = (5, 5), pady = (5, 5), fill = 'both', expand = True)
+
+        self.Lb28 = ctk.CTkLabel(self.Frm30, text = 'IP_V4: ', font = F)
+        self.Lb28.grid(row =0, column = 0, padx = (5, 5), pady = (5, 5))
+
+        self.Frm31 = ctk.CTkFrame(self.Frm30, corner_radius = 5)
+        self.Frm31.grid(row = 0, column = 1, padx = (5, 5), pady = (5, 5))
+
+        self.E_Ip = ctk.CTkEntry(self.Frm31, font = ctk.CTkFont('Times New Roman', 20, 'normal'), corner_radius = 5)
+        self.E_Ip.pack(padx = (2, 2), pady = (2, 2))
+        self.E_Ip.insert(0, self.H_DIP)
+        self.E_Ip.configure(state = 'disabled')
+
+        self.Lb29 = ctk.CTkLabel(self.Frm30, text = 'Domain Name: ', font = F)
+        self.Lb29.grid(row = 1, column = 0, padx = (5, 5), pady = (0, 5))
+
+        self.D_nme = ctk.CTkEntry(self.Frm30, font = F, corner_radius = 5)
+        self.D_nme.grid(row = 1, column = 1, padx = (0, 5), pady = (0, 5))
+
+        self.Lb31 = ctk.CTkLabel(self.Frm30, text = 'Acess key', font = F)
+        self.Lb31.grid(row = 2, column = 0, padx = (0, 5), pady = (0, 5))
+
+        self.Acess_En = ctk.CTkEntry(self.Frm30, font = F, corner_radius = 5)
+        self.Acess_En.grid(row = 2, column = 1, padx = (0, 5), pady = (0, 5),)
+
+        def setup():
+
+            self.Tp8.attributes('-topmost', False)
+            self.Tp8.deiconify()
+
+            self.Tp9 = ctk.CTkToplevel(self.Tp8)
+            self.Tp9.attributes('-topmost', True)
+            self.Tp9.title('READme.ed')
+            self.Tp9.geometry('500x450')
+            self.Tp9.resizable(False, False)
+
+            self.Lb33 = ctk.CTkLabel(self.Tp9, text = 'READme\nThe Agreement for The Domain Creation', font = F)
+            self.Lb33.pack(padx = (5, 5), pady = (5, 5))
+
+            self.Frm35 = ctk.CTkFrame(self.Tp9, corner_radius = 5)
+            self.Frm35.pack(padx = (0, 5), pady = (0, 5))
+
+            self.Re_Lb = ctk.CTkLabel(self.Frm35, text = 'None', font = F)
+            self.Re_Lb.pack(padx = (2, 2), pady = (2, 2))
+
+            self.Frm36 = ctk.CTkFrame(self.Tp9, corner_radius = 5)
+            self.Frm36.pack(padx = (0, 5), pady = (0, 5))
+
+            self.Val6 = ctk.IntVar(self.Tp9, value = 0)
+
+            self.Chk2 = ctk.CTkCheckBox(self.Frm36, text = 'I Agree', font = F, textvariable = self.Val6, offvalue = 0, onvalue = 1)
+            self.Chk2.pack(padx = (0, 5), pady = (0, 5))
+
+            if self.Chk2.get() == 1:
+                self.Dom.Domain = self.D_nme.get()
+                self.Dom.add_domain(self.H_DIP, self.Acess_En.g, User, self.D_IP)
+
+                Mesg = CTkMessagebox(self.Tp8, title = 'Domain Alert', message = f'Domain {self.D_nme.get()} Has Created', option_1 = 'ok', font = F)
+
+                if Mesg.get() == 'ok':
+                    self.Tp8.destroy()
+
+
+        self.Bt30 = ctk.CTkButton(self.Frm30, corner_radius = 5, text = 'Create Domain', font = F, command = lambda : setup())
+        self.Bt30.grid(row = 3, column = 0, padx = (0, 5), pady = (0, 5))
+
+
 
         
 Log()
