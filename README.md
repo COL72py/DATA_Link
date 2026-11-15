@@ -12,5 +12,5 @@ Any Data or Files loss is not responsible by the Creator
 ....
 
 !!!IMPORTANT!!!
-To run the GUI, All the Files need to ne installed.
+To run the GUI, All the Files need to installed.
 Don't Store Creditails, may get courrpted.
